@@ -1,4 +1,4 @@
-package mongodistrubutedlock
+package distrubutedlock
 
 import (
 	"context"
