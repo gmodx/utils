@@ -17,7 +17,7 @@ var ctx = context.Background()
 func TestDistributedLock(t *testing.T) {
 	req := testcontainers.ContainerRequest{
 		Image:        "mongo:latest",
-		ExposedPorts: []string{"27017/tcp"},
+		ExposedPorts: []string{"32777:27017/tcp"},
 		WaitingFor:   wait.ForListeningPort("27017/tcp"),
 	}
 
@@ -45,7 +45,10 @@ func TestDistributedLock(t *testing.T) {
 		t.Fatalf("failed to connect to mongo: %v", err)
 	}
 
-	SetDbConfig(client, "testdb", "locks")
+	err = Init(ctx, client, "testdb", "locks")
+	if err != nil {
+		t.Fatalf("failed to call init func: %v", err)
+	}
 
 	lock := New("test_lock", 5*time.Minute)
 

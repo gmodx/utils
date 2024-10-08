@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -27,10 +28,26 @@ type DistributedLock struct {
 	expiration time.Duration
 }
 
-func SetDbConfig(client *mongo.Client, dbName, collectionName string) {
+func Init(ctx context.Context, client *mongo.Client, dbName, collectionName string) error {
 	_client = client
 	_dbName = dbName
 	_collectionName = collectionName
+
+	return createIndexes(ctx)
+}
+
+func createIndexes(ctx context.Context) error {
+	index := mongo.IndexModel{
+		Keys:    bson.M{"expires_at": 1},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+
+	_, err := _client.Database(_dbName).Collection(_collectionName).Indexes().CreateOne(ctx, index)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func New(lockKey string, expiration time.Duration) *DistributedLock {
