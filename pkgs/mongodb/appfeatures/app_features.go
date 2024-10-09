@@ -10,7 +10,7 @@ import (
 
 type AppFeatures struct {
 	appName  string
-	Features map[string]AppFeature
+	features map[string]AppFeature
 	locker   sync.RWMutex
 
 	_client         *mongo.Client
@@ -29,7 +29,7 @@ func New(client *mongo.Client, dbName, collectionName, appName string) *AppFeatu
 		_collectionName: collectionName,
 		appName:         appName,
 
-		Features: map[string]AppFeature{},
+		features: map[string]AppFeature{},
 	}
 }
 
@@ -38,7 +38,7 @@ func (af *AppFeatures) EnableFeaturesAndUpgrade(ctx context.Context, features ma
 	defer af.locker.Unlock()
 
 	for featureName, feature := range features {
-		if _, ok := af.Features[featureName]; ok {
+		if _, ok := af.features[featureName]; ok {
 			continue
 		}
 
@@ -48,7 +48,7 @@ func (af *AppFeatures) EnableFeaturesAndUpgrade(ctx context.Context, features ma
 			}
 		}
 
-		af.Features[featureName] = feature
+		af.features[featureName] = feature
 		if err := af.enableDbFeature(ctx, af.appName, featureName); err != nil {
 			return err
 		}

@@ -90,7 +90,7 @@ func TestAppFeatures_FeaturesUpgrade(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, mockFeature.Sum)
-	assert.Equal(t, &mockFeature, af.Features["feature1"])
+	assert.Equal(t, &mockFeature, af.features["feature1"])
 }
 
 type MockFeature struct {
