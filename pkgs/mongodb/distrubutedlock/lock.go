@@ -26,6 +26,7 @@ type DistributedLock struct {
 	collection *mongo.Collection
 	lockKey    string
 	expiration time.Duration
+	labels     map[string]string
 }
 
 func Init(ctx context.Context, client *mongo.Client, dbName, collectionName string) error {
@@ -50,12 +51,13 @@ func createIndexes(ctx context.Context) error {
 	return nil
 }
 
-func New(lockKey string, expiration time.Duration) *DistributedLock {
+func New(lockKey string, expiration time.Duration, labels map[string]string) *DistributedLock {
 	return &DistributedLock{
 		client:     _client,
 		collection: _client.Database(_dbName).Collection(_collectionName),
 		lockKey:    lockKey,
 		expiration: expiration,
+		labels:     labels,
 	}
 }
 
@@ -66,6 +68,7 @@ func (d *DistributedLock) Acquire(ctx context.Context) error {
 	_, err := d.collection.InsertOne(ctx, bson.M{
 		"_id":        d.lockKey,
 		"expires_at": expirationTime,
+		"labels":     d.labels,
 	})
 
 	if err != nil {
@@ -100,4 +103,22 @@ func (d *DistributedLock) IsLocked(ctx context.Context) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+func (d *DistributedLock) GetLabels(ctx context.Context) (map[string]string, error) {
+	var result struct {
+		Labels map[string]string `bson:"labels"`
+	}
+	err := d.collection.FindOne(ctx, bson.M{
+		"_id": d.lockKey,
+	}).Decode(&result)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return result.Labels, nil
 }

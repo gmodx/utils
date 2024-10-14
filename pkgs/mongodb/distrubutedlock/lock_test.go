@@ -50,7 +50,9 @@ func TestDistributedLock(t *testing.T) {
 		t.Fatalf("failed to call init func: %v", err)
 	}
 
-	lock := New("test_lock", 5*time.Minute)
+	lock := New("test_lock", 5*time.Minute, map[string]string{
+		"aaa": "bbb",
+	})
 
 	err = lock.Acquire(ctx)
 	assert.NoError(t, err)
@@ -61,6 +63,11 @@ func TestDistributedLock(t *testing.T) {
 
 	err = lock.Acquire(ctx)
 	assert.Equal(t, ErrLockAcquired, err)
+
+	dbLabels, err := lock.GetLabels(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, dbLabels)
+	assert.Equal(t, "bbb", dbLabels["aaa"])
 
 	err = lock.Release(ctx)
 	assert.NoError(t, err)
