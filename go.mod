@@ -3,6 +3,7 @@ module github.com/gmodx/utils
 go 1.22.3
 
 require (
+	github.com/blang/semver/v4 v4.0.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.33.0
 	go.mongodb.org/mongo-driver v1.17.1
